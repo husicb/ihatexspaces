@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𝕏 Credits - Save 𝕏 Spaces</title>
+    <link rel="stylesheet" href="./styles/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button class="theme-toggle">Theme</button>
+    <div class="container">
+        <p class="main-text">𝕏 Credits</p>
+        <p class="terminal-text"></p>
+        <div class="credits-list hidden">
+            <ul class="credits-items"></ul>
+        </div>
+        <p class="back-link">> <a href="index.html">Back to Save 𝕏 Spaces</a></p>
+    </div>
+    
+    <footer>
+        <p>Built for the community | <a href="index.html">Home</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const text = "Thank you to everyone who contributed to making 𝕏 Spaces better.";
+            const credits = [
+                "Community Contributors",
+                "𝕏 Spaces Hosts",
+                "Early Adopters",
+                "Feedback Providers",
+                "Open Source Community"
+            ];
+            
+            function typeText(target, text, callback) {
+                let i = 0;
+                function typing() {
+                    if (i < text.length) {
+                        target.textContent += text.charAt(i);
+                        i++;
+                        setTimeout(typing, 20);
+                    } else if (callback) {
+                        callback();
+                    }
+                }
+                typing();
+            }
+            
+            function showCredits() {
+                document.querySelector(".credits-list").classList.remove("hidden");
+                let currentCredit = 0;
+                
+                function addNextCredit() {
+                    if (currentCredit < credits.length) {
+                        const li = document.createElement("li");
+                        li.textContent = "• " + credits[currentCredit];
+                        document.querySelector(".credits-items").appendChild(li);
+                        currentCredit++;
+                        setTimeout(addNextCredit, 100);
+                    }
+                }
+                
+                addNextCredit();
+            }
+            
+            typeText(document.querySelector(".terminal-text"), text, showCredits);
+        });
+
+        // Theme toggle functionality
+        const themeToggle = document.querySelector('.theme-toggle');
+        const body = document.body;
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-theme');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            // Save theme preference
+            localStorage.setItem('theme', body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+    </script>
+</body>
+</html> 

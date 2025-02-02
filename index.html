@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save 𝕏 Spaces</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button class="theme-toggle">Theme</button>
+    <div class="container">
+        <p class="main-text">Save 𝕏 Spaces</p>
+        <p class="terminal-text"></p>
+        <button class="features-button">Features in development</button>
+        <div class="feature-list hidden">
+            <p class="terminal-features"></p>
+            <ul class="feature-items"></ul>
+        </div>
+        <p class="blink-command">> <a href="guide.html">𝕏 Spaces Guide</a><span class="cursor">_</span></p>
+    </div>
+    
+    <footer>
+        <p>Built for the community | <a href="credits.html">𝕏 Credits</a> | <a href="submit.html">Submit Feature</a> | <a href="submit-space.html">Submit Space</a></p>
+    </footer>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Initialize Firebase -->
+    <script src="scripts/firebase-config.js"></script>
+    <script src="scripts/theme.js"></script>
+
+    <!-- Your existing script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const text = "𝕏 Spaces is underused. We're here to fix that. This is a community-driven project initiated to help create a better 𝕏 Spaces experience.";
+            const featuresText = "Features in development:";
+            const features = [
+                "Discover live & scheduled 𝕏 Spaces",
+                "Submit & promote your own Spaces",
+                "Organize structured discussions & debates",
+                "Future integration with real-time 𝕏 data"
+            ];
+            
+            // Remove the blink command from HTML since we'll add it dynamically
+            document.querySelector(".blink-command").remove();
+            document.querySelector(".features-button").style.display = "none";
+            
+            function typeText(target, text, callback) {
+                let i = 0;
+                function typing() {
+                    if (i < text.length) {
+                        target.textContent += text.charAt(i);
+                        i++;
+                        const speed = Math.random() * 20 + 35;
+                        setTimeout(typing, speed);
+                    } else if (callback) {
+                        setTimeout(callback, 300);
+                    }
+                }
+                typing();
+            }
+            
+            function showFeaturesButton() {
+                const featuresBtn = document.querySelector(".features-button");
+                featuresBtn.style.display = "block";
+                featuresBtn.offsetHeight;
+                featuresBtn.classList.add('show');
+            }
+            
+            function typeFeatures() {
+                document.querySelector(".feature-list").classList.remove("hidden");
+                typeText(document.querySelector(".terminal-features"), featuresText, typeFeaturesList);
+            }
+            
+            function typeFeaturesList() {
+                let currentFeature = 0;
+                function typeNextFeature() {
+                    if (currentFeature < features.length) {
+                        const li = document.createElement("li");
+                        if (currentFeature === 0) {
+                            li.innerHTML = `<span class="hoverable-feature">
+                                <span class="feature-text">• ${features[currentFeature]}</span>
+                                <span class="guide-popup">> <a href="guide.html">𝕏 Spaces Guide</a></span>
+                            </span>`;
+                        } else {
+                            li.textContent = "• " + features[currentFeature];
+                        }
+                        document.querySelector(".feature-items").appendChild(li);
+                        currentFeature++;
+                        setTimeout(typeNextFeature, 100);
+                    }
+                }
+                typeNextFeature();
+            }
+            
+            typeText(document.querySelector(".terminal-text"), text, showFeaturesButton);
+            
+            document.querySelector(".features-button").addEventListener("click", function() {
+                this.style.display = "none";
+                typeFeatures();
+            });
+        });
+    </script>
+</body>
+</html> 

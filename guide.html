@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <title>𝕏 Spaces Guide</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="./styles/reset.css">
+    <link rel="stylesheet" href="./styles/guide.css">
+</head>
+<body class="guide-page">
+    <nav class="top-nav">
+        <a href="index.html" class="back-btn">← Back</a>
+        <h1>𝕏 Spaces Guide</h1>
+        <div class="tabs">
+            <button class="tab active">Live Now</button>
+            <button class="tab">Upcoming</button>
+            <button class="tab">Trending</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <p class="main-text">𝕏 Spaces Guide</p>
+        <div class="spaces-tabs">
+            <button class="tab active" data-tab="upcoming">Upcoming Spaces</button>
+            <button class="tab" data-tab="categories">Categories</button>
+        </div>
+
+        <div id="upcomingSpaces" class="spaces-grid">
+            <!-- Scheduled spaces will be loaded here -->
+        </div>
+
+        <div id="categoriesSection" class="categories-section hidden">
+            <div class="categories">
+                <div class="category active" data-category="all">All</div>
+                <button class="category">Tech</button>
+                <button class="category">Sports</button>
+                <button class="category">News</button>
+                <button class="category">Entertainment</button>
+                <button class="category">Finance</button>
+            </div>
+        </div>
+        
+        <div class="submit-cta">
+            <p>Host a Space? Add it to our guide!</p>
+            <a href="submit-space.html" class="cta-button">Submit Your Space</a>
+        </div>
+    </div>
+
+    <main class="spaces-grid">
+        <article class="space-card">
+            <span class="live-badge">LIVE</span>
+            <div class="space-content">
+                <img src="https://picsum.photos/48" alt="" class="host-avatar" loading="lazy">
+                <div class="space-info">
+                    <h3>Tech Today with Jane</h3>
+                    <p class="host">@techhost</p>
+                    <p class="listeners">2.4K listening</p>
+                </div>
+            </div>
+            <button class="join-button">Join Space</button>
+        </article>
+
+        <article class="space-card">
+            <span class="live-badge">LIVE</span>
+            <div class="space-content">
+                <img src="https://picsum.photos/48" alt="" class="host-avatar" loading="lazy">
+                <div class="space-info">
+                    <h3>Crypto Market Analysis</h3>
+                    <p class="host">@cryptoexpert</p>
+                    <p class="listeners">1.2K listening</p>
+                </div>
+            </div>
+            <button class="join-button">Join Space</button>
+        </article>
+
+        <article class="space-card">
+            <span class="live-badge">LIVE</span>
+            <div class="space-content">
+                <img src="https://picsum.photos/48" alt="" class="host-avatar" loading="lazy">
+                <div class="space-info">
+                    <h3>Sports Talk Live</h3>
+                    <p class="host">@sportsinsider</p>
+                    <p class="listeners">3.7K listening</p>
+                </div>
+            </div>
+            <button class="join-button">Join Space</button>
+        </article>
+
+        <article class="space-card">
+            <span class="live-badge">LIVE</span>
+            <div class="space-content">
+                <img src="https://picsum.photos/48" alt="" class="host-avatar" loading="lazy">
+                <div class="space-info">
+                    <h3>Late Night Music</h3>
+                    <p class="host">@musiclover</p>
+                    <p class="listeners">856 listening</p>
+                </div>
+            </div>
+            <button class="join-button">Join Space</button>
+        </article>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="scripts/firebase-config.js"></script>
+    <script src="scripts/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    const tabName = tab.dataset.tab;
+                    document.getElementById('upcomingSpaces').classList.toggle('hidden', tabName !== 'upcoming');
+                    document.getElementById('categoriesSection').classList.toggle('hidden', tabName !== 'categories');
+                });
+            });
+
+            async function loadScheduledSpaces() {
+                try {
+                    const now = new Date();
+                    const snapshot = await db.collection('scheduled_spaces')
+                        .where('status', '==', 'approved')
+                        .where('scheduledStart', '>', now)
+                        .orderBy('scheduledStart', 'asc')
+                        .get();
+
+                    const container = document.getElementById('upcomingSpaces');
+                    container.innerHTML = '';
+
+                    if (snapshot.empty) {
+                        container.innerHTML = '<p class="no-spaces">No upcoming spaces scheduled yet.</p>';
+                        return;
+                    }
+
+                    snapshot.forEach(doc => {
+                        const space = doc.data();
+                        const spaceEl = document.createElement('div');
+                        spaceEl.className = 'space-card';
+                        const startTime = space.scheduledStart.toDate();
+                        spaceEl.innerHTML = `
+                            <div class="space-header">
+                                <img src="${space.hostImage}" class="host-avatar" alt="Host">
+                                <h3>${space.title}</h3>
+                            </div>
+                            <div class="space-meta">
+                                <span class="schedule-time">🕒 ${startTime.toLocaleString()}</span>
+                                <a href="https://twitter.com/i/spaces/${space.spaceId}" 
+                                   target="_blank" class="remind-btn">Set Reminder</a>
+                            </div>
+                        `;
+                        container.appendChild(spaceEl);
+                    });
+                } catch (error) {
+                    console.error('Error loading spaces:', error);
+                    const container = document.getElementById('upcomingSpaces');
+                    container.innerHTML = '<p class="error-message">Error loading spaces. Please try again later.</p>';
+                }
+            }
+
+            loadScheduledSpaces();
+        });
+    </script>
+</body>
+</html>
