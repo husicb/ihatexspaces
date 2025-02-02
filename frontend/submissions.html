@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Submissions - Save 𝕏 Spaces</title>
+    <link rel="stylesheet" href="./styles/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button class="theme-toggle">Theme</button>
+    <div class="container">
+        <p class="main-text">Feature Submissions</p>
+        <div class="submissions-list">
+            <!-- Features will be loaded here -->
+        </div>
+        <p class="back-link">> <a href="submit.html">Submit New Feature</a> | <a href="index.html">Back to Home</a></p>
+    </div>
+    
+    <footer>
+        <p>Built for the community | <a href="index.html">Home</a></p>
+    </footer>
+
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Initialize Firebase -->
+    <script src="./scripts/firebase-config.js"></script>
+    
+    <!-- Theme functionality -->
+    <script src="./scripts/theme.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const submissionsList = document.querySelector('.submissions-list');
+            
+            // Load and display features
+            async function loadFeatures() {
+                try {
+                    const snapshot = await db.collection('features')
+                        .orderBy('votes', 'desc')
+                        .get();
+                    
+                    submissionsList.innerHTML = '';
+                    
+                    if (snapshot.empty) {
+                        submissionsList.innerHTML = '<p class="no-features">No features submitted yet. Be the first!</p>';
+                        return;
+                    }
+
+                    snapshot.forEach(doc => {
+                        const feature = doc.data();
+                        const featureEl = document.createElement('div');
+                        featureEl.className = 'feature-card';
+                        featureEl.innerHTML = `
+                            <div class="feature-content">
+                                <h3>${feature.title}</h3>
+                                <p>${feature.description}</p>
+                                <div class="feature-meta">
+                                    <span class="votes-count">${feature.votes} votes</span>
+                                    <button onclick="voteForFeature('${doc.id}')" class="vote-button">
+                                        Vote 👍
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        submissionsList.appendChild(featureEl);
+                    });
+                } catch (error) {
+                    console.error('Error loading features:', error);
+                    submissionsList.innerHTML = '<p class="error-message">Error loading features. Please try again later.</p>';
+                }
+            }
+
+            // Initial load
+            loadFeatures();
+
+            // Make voteForFeature available globally
+            window.voteForFeature = async (featureId) => {
+                try {
+                    const featureRef = db.collection('features').doc(featureId);
+                    await db.runTransaction(async (transaction) => {
+                        const doc = await transaction.get(featureRef);
+                        if (!doc.exists) {
+                            throw new Error('Feature not found!');
+                        }
+                        
+                        const newVotes = (doc.data().votes || 0) + 1;
+                        transaction.update(featureRef, { votes: newVotes });
+                    });
+
+                    // Reload features to show updated votes
+                    loadFeatures();
+                } catch (error) {
+                    console.error('Error voting for feature:', error);
+                    alert('Error voting for feature. Please try again.');
+                }
+            };
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feature - Save 𝕏 Spaces</title>
+    <link rel="stylesheet" href="./styles/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button class="theme-toggle">Theme</button>
+    <div class="container">
+        <p class="main-text">Submit Feature</p>
+        <div class="feature-description">
+            <p>Have an idea to make 𝕏 Spaces better? Submit it here!</p>
+        </div>
+        <div class="feature-submit">
+            <form id="featureForm" class="feature-form">
+                <input type="text" id="featureTitle" placeholder="Feature title" required>
+                <textarea id="featureDescription" placeholder="Describe your feature idea..." required></textarea>
+                <button type="submit" class="submit-button">Submit Feature</button>
+            </form>
+        </div>
+        <p class="back-link">> <a href="index.html">Back to Save 𝕏 Spaces</a> | <a href="submissions.html">View Submissions</a></p>
+    </div>
+    
+    <footer>
+        <p>Built for the community | <a href="index.html">Home</a></p>
+    </footer>
+
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Initialize Firebase -->
+    <script src="./scripts/firebase-config.js"></script>
+    
+    <!-- Theme functionality -->
+    <script src="./scripts/theme.js"></script>
+
+    <script>
+        document.getElementById('featureForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('featureTitle').value;
+            const description = document.getElementById('featureDescription').value;
+            
+            try {
+                await db.collection('features').add({
+                    title,
+                    description,
+                    votes: 0,
+                    timestamp: new Date()
+                });
+                alert('Feature submitted successfully!');
+                window.location.href = 'submissions.html';
+            } catch (error) {
+                console.error('Error submitting feature:', error);
+                alert('Error submitting feature. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html> 

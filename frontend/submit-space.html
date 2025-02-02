@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Space - Save 𝕏 Spaces</title>
+    <link rel="stylesheet" href="./styles/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button class="theme-toggle">Theme</button>
+    <div class="container">
+        <p class="main-text">Add Your Space to the Guide</p>
+        <div class="feature-description">
+            <p>Have a scheduled 𝕏 Space? Enter your handle below and we'll automatically find your scheduled spaces.
+               You can then choose which ones to add to our community guide!</p>
+        </div>
+        <div class="space-submit">
+            <form id="spaceSubmitForm" class="feature-form">
+                <div class="form-group">
+                    <label for="xHandle">Your X Handle</label>
+                    <input type="text" id="xHandle" placeholder="Your X handle (e.g., @username)" required>
+                    <small class="form-help">We'll use this to find spaces you've scheduled on X</small>
+                </div>
+                <button type="submit" class="submit-button">
+                    <span class="button-text">Find My Scheduled Spaces</span>
+                    <span class="button-help">We'll automatically find spaces you've scheduled on X</span>
+                </button>
+            </form>
+        </div>
+        <div id="spacesPreview" class="spaces-preview hidden">
+            <!-- User's scheduled spaces will be loaded here -->
+        </div>
+        <p class="back-link">> <a href="guide.html">Back to Guide</a> | <a href="index.html">Home</a></p>
+    </div>
+    
+    <footer>
+        <p>Built for the community | <a href="index.html">Home</a></p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Initialize Firebase -->
+    <script src="./scripts/firebase-config.js"></script>
+
+    <script src="./scripts/api-config.js"></script>
+    <script src="./scripts/x-api-config.js"></script>
+    <script src="./scripts/theme.js"></script>
+    <script>
+        const xApi = new XAPI();
+        
+        document.getElementById('spaceSubmitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const handle = document.getElementById('xHandle').value;
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            
+            try {
+                // Show loading state
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Loading...';
+                
+                // Get user data
+                const userData = await xApi.getUserByUsername(handle);
+                if (!userData || !userData.data) {
+                    throw new Error('User not found. Please check the handle and try again.');
+                }
+
+                // Get user's spaces
+                const spacesData = await xApi.getUserSpaces(userData.data.id);
+                if (!spacesData || !spacesData.data) {
+                    throw new Error('No spaces found for this user.');
+                }
+
+                const preview = document.getElementById('spacesPreview');
+                preview.innerHTML = '';
+
+                if (spacesData.data.length > 0) {
+                    const scheduledSpaces = spacesData.data.filter(space => space.state === 'scheduled');
+                    
+                    if (scheduledSpaces.length > 0) {
+                        scheduledSpaces.forEach(space => {
+                            const spaceEl = document.createElement('div');
+                            spaceEl.className = 'space-card';
+                            const startTime = new Date(space.scheduled_start);
+                            spaceEl.innerHTML = `
+                                <div class="space-header">
+                                    <img src="${userData.data.profile_image_url}" class="host-avatar" alt="Host">
+                                    <h3>${space.title}</h3>
+                                </div>
+                                <div class="space-meta">
+                                    <span class="schedule-time">🕒 ${startTime.toLocaleString()}</span>
+                                    <button onclick="submitSpace('${space.id}', '${userData.data.id}', '${space.title}', '${space.scheduled_start}', '${userData.data.profile_image_url}')" class="submit-space-btn">Add to Guide</button>
+                                </div>
+                            `;
+                            preview.appendChild(spaceEl);
+                        });
+                    } else {
+                        preview.innerHTML = '<p class="no-spaces">No scheduled spaces found. Only scheduled spaces can be added to the guide.</p>';
+                    }
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.innerHTML = '<p class="no-spaces">No spaces found for this user.</p>';
+                    preview.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Error fetching spaces. Please try again.');
+            } finally {
+                // Reset button state
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+            }
+        });
+
+        async function submitSpace(spaceId, hostId, title, scheduledTime, hostImage) {
+            try {
+                await db.collection('scheduled_spaces').add({
+                    spaceId: spaceId,
+                    hostId: hostId,
+                    title: title,
+                    scheduledStart: new Date(scheduledTime),
+                    hostImage: hostImage,
+                    submittedAt: new Date(),
+                    status: 'approved' // You might want to change this to 'pending' if you want to moderate submissions
+                });
+                alert('Space added to the guide successfully!');
+                window.location.href = 'guide.html';
+            } catch (error) {
+                console.error('Error submitting space:', error);
+                alert('Error adding space to guide. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html> 

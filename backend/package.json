@@ -1,0 +1,20 @@
+{
+  "name": "ihatexspaces",
+  "version": "1.0.0",
+  "description": "A campaign to revitalize X Spaces and bring back real conversations. Join the movement to improve the platform for genuine discussions.",
+  "main": "api-config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "memory-cache": "^0.2.0",
+    "node-fetch": "^2.7.0"
+  }
+}
